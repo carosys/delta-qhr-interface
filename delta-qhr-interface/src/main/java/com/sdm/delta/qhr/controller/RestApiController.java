@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.sdm.delta.qhr.dao.QhrPatientDao;
 import com.sdm.delta.qhr.dao.UserDao;
+import com.sdm.delta.qhr.model.Patient;
 import com.sdm.delta.qhr.model.User;
 import com.sdm.delta.qhr.util.CustomErrorType;
 
@@ -40,6 +41,11 @@ public class RestApiController {
 	}
 	// -------------------Create Patient at QHR---------------------------------------------
 	
+	
+	@RequestMapping(value = "/qhrpatient/search/{phn}", method = RequestMethod.GET)
+	public List<Patient> searchQhrPatientViaPhn(@PathVariable("phn") String phn) {
+		return qhrPatientDao.searchQhrPatientViaPhn(phn);
+	}
     @RequestMapping(value = "/qhrpatient/{rxaaid}", method = RequestMethod.POST)
     public ResponseEntity<?> createQhrPatient(@PathVariable("rxaaid") long rxaaid, UriComponentsBuilder ucBuilder) {
         logger.info("Creating QHRPatient : {}", rxaaid);

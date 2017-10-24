@@ -3,6 +3,7 @@
  */
 package com.sdm.delta.qhr.dao.impl;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -14,6 +15,7 @@ import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.OAuth2ClientContext;
 import org.springframework.security.oauth2.client.OAuth2RestOperations;
 import org.springframework.security.oauth2.client.OAuth2RestTemplate;
@@ -25,6 +27,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.sdm.delta.qhr.dao.QhrPatientDao;
+import com.sdm.delta.qhr.model.Patient;
 import com.sdm.delta.qhr.model.Quote;
 
 /**
@@ -99,17 +102,39 @@ public class QhrPatientDaoImpl implements QhrPatientDao {
 	}
 	
 	public List<Map<String,?>> home() {
-		@SuppressWarnings("unchecked")
 		
-		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
-		// Add query parameter
-		.path("/genders")
-	    .queryParam("tenant", tenant)
-	    .queryParam("uuid", uuid);
-		List<Map<String,?>> result = restTemplate.getForObject(builder.toUriString(), List.class);
+		String uri = buildQhrUrlString("/genders");
+		List<Map<String,?>> result = restTemplate.getForObject(uri, List.class);
 		
 		return result;
 	}
+	
+	@Override
+	public List<Patient> searchQhrPatientViaPhn(String phn) {
+		UriComponentsBuilder builder = buildQhrUrl("/patients/search");
+		builder.queryParam("phn",phn);
+	        ResponseEntity<Patient[]> responseEntity = restTemplate.getForEntity(builder.toUriString(), Patient[].class);
+	        Patient[] objects = responseEntity.getBody();
+	        return Arrays.asList(objects);
+	}
+	
+	private UriComponentsBuilder  buildQhrUrl(String path) {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
+		.path(path)
+	    .queryParam("tenant", tenant)
+	    .queryParam("uuid", uuid);
+		return builder;
+	}
+
+	private String  buildQhrUrlString(String path) {
+		UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(baseUrl)
+		.path(path)
+	    .queryParam("tenant", tenant)
+	    .queryParam("uuid", uuid);
+		return builder.toUriString();
+	}
+	
+	
 	
 	@Bean
 	protected OAuth2ProtectedResourceDetails resource() {
@@ -125,5 +150,7 @@ public class QhrPatientDaoImpl implements QhrPatientDao {
 	public OAuth2RestOperations restTemplate(OAuth2ClientContext oauth2ClientContext) {
 		return new OAuth2RestTemplate(resource, oauth2ClientContext);
 	}
+
+
 
 }
